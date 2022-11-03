@@ -18,25 +18,7 @@
 #include <memory>
 #include <vector>
 
-#include "ncnn/include/cpu.h"
-
-namespace ncnn {
-
-int BenchNet::load_model() {
-  ModelBinFromEmpty mb;
-  for (size_t i = 0; i < layers.size(); ++i) {
-    Layer *layer = layers[i];
-    int ret = layer->load_model(mb);
-    if (ret != 0) {
-      fprintf(stderr, "layer load_model %d failed\n", static_cast<int>(i));
-      return -1;
-    }
-  }
-
-  return 0;
-}
-
-}  // namespace ncnn
+#include "ncnn/include/ncnn/cpu.h"
 
 namespace aibench {
 
@@ -56,7 +38,8 @@ Status NcnnExecutor::Init(int num_threads) {
   opt.num_threads = num_threads;
   opt.blob_allocator = &g_blob_pool_allocator;
   opt.workspace_allocator = &g_workspace_pool_allocator;
-  ncnn::set_default_option(opt);
+
+  net.opt = opt;
   return Status::SUCCESS;
 }
 
@@ -68,7 +51,8 @@ Status NcnnExecutor::Prepare() {
     return Status::UNSUPPORTED;
   }
 
-  ret = net.load_model();
+  ncnn::DataReaderFromEmpty dr;
+  ret = net.load_model(dr);
   if (ret != 0) {
     return Status::RUNTIME_ERROR;
   }

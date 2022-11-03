@@ -1,21 +1,25 @@
 workspace(name = "aibench")
 
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
 # proto_library rules implicitly depend on @com_google_protobuf//:protoc,
 # which is the proto-compiler.
 # This statement defines the @com_google_protobuf repo.
 http_archive(
     name = "com_google_protobuf",
-    sha256 = "d7a221b3d4fb4f05b7473795ccea9e05dab3b8721f6286a95fffbffc2d926f8b",
-    strip_prefix = "protobuf-3.6.1",
+    sha256 = "283cd18f82341e96afd75fa8b85e47680b47b7db1399a1a944a1b53bfb48b27f",
+    strip_prefix = "protobuf-3.20.3",
     urls = [
-        "https://cnbj1.fds.api.xiaomi.com/mace/third-party/protobuf/protobuf-3.6.1.zip",
-        "https://github.com/google/protobuf/archive/v3.6.1.zip",
+        "https://github.com/protocolbuffers/protobuf/releases/download/v3.20.3/protobuf-all-3.20.3.zip",
     ],
 )
 
-new_http_archive(
+load("@com_google_protobuf//:protobuf_deps.bzl", "PROTOBUF_MAVEN_ARTIFACTS", "protobuf_deps")
+protobuf_deps()
+
+http_archive(
     name = "gtest",
-    build_file = "third_party/googletest/googletest.BUILD",
+    build_file = "@aibench//:third_party/googletest/googletest.BUILD",
     sha256 = "f3ed3b58511efd272eb074a3a6d6fb79d7c2e6a0e374323d1e6bcbcc1ef141bf",
     strip_prefix = "googletest-release-1.8.0",
     urls = [
@@ -24,33 +28,32 @@ new_http_archive(
     ],
 )
 
-new_http_archive(
+http_archive(
     name = "opencv",
-    build_file = "third_party/opencv/opencv.BUILD",
+    build_file = "@aibench//:third_party/opencv/opencv.BUILD",
     sha256 = "9e4350a7aa5f4c8600a1a94466d42546098d76378f24bd2cf05ab7e96959c910",
     urls = [
         "http://cnbj1.fds.api.xiaomi.com/aibench/third_party/opencv-ndk-custom-3.4.4.zip",
     ],
 )
-    
 
-new_http_archive(
+
+http_archive(
     name = "ncnn",
-    build_file = "third_party/ncnn/ncnn.BUILD",
-    sha256 = "de85593597a6b0a3c602c25c5c752d8c216f34da19042c7fd93f323916f5537b",
-    strip_prefix = "ncnn-20180830",
+    build_file = "@aibench//:third_party/ncnn/ncnn.BUILD",
+    sha256 = "31b04206847d18547c4d5bc8874fc4fe89b61ca0fad7e2e00a486d9aca0639e6",
+    strip_prefix = "ncnn-20220729",
     type = "zip",
     urls = [
-        "https://cnbj1.fds.api.xiaomi.com/aibench/third_party/ncnn-20180830.zip",
-        "https://codeload.github.com/Tencent/ncnn/zip/20180830",
+        "https://github.com/Tencent/ncnn/archive/refs/tags/20220729.zip",
     ],
 )
 
-# You need to comment following new_http_archive and uncomment following
+# You need to comment following http_archive and uncomment following
 # new_local_repository to benchmark SNPE
-new_http_archive(
+http_archive(
     name = "snpe",
-    build_file = "third_party/snpe/snpe.BUILD",
+    build_file = "@aibench//:third_party/snpe/snpe.BUILD",
     sha256 = "88ccf182b47c8ee36e338fd3d6f207661e95992f5bbdacc2867320b1eb817034",
     strip_prefix = "snpe-1.50.0.2622",
     urls = [
@@ -58,10 +61,10 @@ new_http_archive(
     ],
 )
 # You need to uncomment following new_local_repository and comment foregoing
-# new_http_archive to benchmark SNPE
+# http_archive to benchmark SNPE
 # new_local_repository(
 #     name = "snpe",
-#     build_file = "third_party/snpe/snpe.BUILD",
+#     build_file = "@aibench//:third_party/snpe/snpe.BUILD",
 #     path = "/path/to/snpe",
 # )
 
@@ -76,9 +79,9 @@ http_archive(
     ],
 )
 
-new_http_archive(
+http_archive(
     name = "six_archive",
-    build_file = "third_party/six/six.BUILD",
+    build_file = "@aibench//:third_party/six/six.BUILD",
     sha256 = "105f8d68616f8248e24bf0e9372ef04d3cc10104f1980f54d57b2ce73a5ad56a",
     strip_prefix = "six-1.10.0",
     urls = [
@@ -111,9 +114,9 @@ android_ndk_repository(
 )
 
 # Set up default cross compilers for arm linux
-new_http_archive(
+http_archive(
     name = "gcc_linaro_7_3_1_arm_linux_gnueabihf",
-    build_file = "third_party/compilers/arm_compiler.BUILD",
+    build_file = "@aibench//:third_party/compilers/arm_compiler.BUILD",
     sha256 = "7248bf105d0d468887a9b8a7120bb281ac8ad0223d9cb3d00dc7c2d498485d91",
     strip_prefix = "gcc-linaro-7.3.1-2018.05-x86_64_arm-linux-gnueabihf",
     urls = [
@@ -122,9 +125,9 @@ new_http_archive(
     ],
 )
 
-new_http_archive(
+http_archive(
     name = "gcc_linaro_7_3_1_aarch64_linux_gnu",
-    build_file = "third_party/compilers/aarch64_compiler.BUILD",
+    build_file = "@aibench//:third_party/compilers/aarch64_compiler.BUILD",
     sha256 = "73eed74e593e2267504efbcf3678918bb22409ab7afa3dc7c135d2c6790c2345",
     strip_prefix = "gcc-linaro-7.3.1-2018.05-x86_64_aarch64-linux-gnu",
     urls = [
@@ -133,11 +136,11 @@ new_http_archive(
     ],
 )
 
-# You need to comment following new_http_archive and uncomment following
+# You need to comment following http_archive and uncomment following
 # new_local_repository to benchmark HIAI
-new_http_archive(
+http_archive(
     name = "hiai",
-    build_file = "third_party/hiai/hiai.BUILD",
+    build_file = "@aibench//:third_party/hiai/hiai.BUILD",
     sha256 = "8da8305617573bc495df8f4509fcb1655ffb073d790d9c0b6ca32ba4a4e41055",
     strip_prefix = "HiAI_DDK_100.200.010.011",
     type = "zip",
@@ -147,9 +150,9 @@ new_http_archive(
 )
 
 # new_local_repository to benchmark TNN
-new_http_archive(
+http_archive(
     name = "tnn",
-    build_file = "third_party/tnn/tnn.BUILD",
+    build_file = "@aibench//:third_party/tnn/tnn.BUILD",
     sha256 = "83d084ca0a8974987f0f57c9b78e128d70499e00b0893f371b055fa75643c6db",
     strip_prefix = "tnn-v0.3.0",
     urls = [
@@ -157,9 +160,9 @@ new_http_archive(
     ],
 )
 # You need to uncomment following new_local_repository and comment foregoing
-# new_http_archive to benchmark HIAI
+# http_archive to benchmark HIAI
 # new_local_repository(
 #     name = "hiai",
-#     build_file = "third_party/hiai/hiai.BUILD",
+#     build_file = "@aibench//:third_party/hiai/hiai.BUILD",
 #     path = "/path/to/hiai",
 # )

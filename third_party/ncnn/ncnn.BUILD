@@ -3,19 +3,32 @@ licenses(["notice"])
 exports_files(["LICENSE.txt"])
 
 NCNN_HEADERS = [
-    "include/allocator.h",
-    "include/benchmark.h",
-    "include/blob.h",
-    "include/cpu.h",
-    "include/layer.h",
-    "include/layer_type_enum.h",
-    "include/layer_type.h",
-    "include/mat.h",
-    "include/modelbin.h",
-    "include/net.h",
-    "include/opencv.h",
-    "include/paramdict.h",
-    "include/platform.h",
+    "include/ncnn/allocator.h",
+    "include/ncnn/benchmark.h",
+    "include/ncnn/blob.h",
+    "include/ncnn/c_api.h",
+    "include/ncnn/command.h",
+    "include/ncnn/cpu.h",
+    "include/ncnn/datareader.h",
+    "include/ncnn/gpu.h",
+    "include/ncnn/layer.h",
+    "include/ncnn/layer_shader_type.h",
+    "include/ncnn/layer_shader_type_enum.h",
+    "include/ncnn/layer_type.h",
+    "include/ncnn/layer_type_enum.h",
+    "include/ncnn/mat.h",
+    "include/ncnn/modelbin.h",
+    "include/ncnn/ncnn_export.h",
+    "include/ncnn/net.h",
+    "include/ncnn/option.h",
+    "include/ncnn/paramdict.h",
+    "include/ncnn/pipeline.h",
+    "include/ncnn/pipelinecache.h",
+    "include/ncnn/platform.h",
+    "include/ncnn/simpleocv.h",
+    "include/ncnn/simpleomp.h",
+    "include/ncnn/simplestl.h",
+    "include/ncnn/vulkan_header_fix.h",
 ]
 
 NCNN_LIBRARIES = [
@@ -47,10 +60,10 @@ NCNN_CMAKE_OPTS = select({
     "@aibench//aibench:android_arm64": " -DCMAKE_TOOLCHAIN_FILE=$$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake" +
                                        " -DANDROID_ABI='arm64-v8a'" +
                                        " -DANDROID_PLATFORM=android-21",
-    "@aibench//aibench:aarch64_linux": " -DCMAKE_TOOLCHAIN_FILE=../" + AARCH64_TOOLCHAIN_CMAKE +
+    "@aibench//aibench:aarch64_linux": " -DCMAKE_TOOLCHAIN_FILE=$$workdir/" + AARCH64_TOOLCHAIN_CMAKE +
                                        " -DGENERIC_ABI='aarch64'" +
                                        " -DGENERIC_ARM_NEON=ON",
-    "@aibench//aibench:armhf_linux":   " -DCMAKE_TOOLCHAIN_FILE=../" + ARMHF_TOOLCHAIN_CMAKE +
+    "@aibench//aibench:armhf_linux":   " -DCMAKE_TOOLCHAIN_FILE=$$workdir/" + ARMHF_TOOLCHAIN_CMAKE +
                                        " -DGENERIC_ABI='armhf'" +
                                        " -DGENERIC_ARM_NEON=ON",
     "//conditions:default": "",
@@ -60,30 +73,28 @@ genrule(
     name = "ncnn_gen_cmake_aarch64_toolchain",
     srcs = ["@aibench//tools/cmake_toolchain:toolchain", "@gcc_linaro_7_3_1_aarch64_linux_gnu//:gcc"],
     outs = [AARCH64_TOOLCHAIN_CMAKE],
-    cmd = "workdir=$$(mktemp -d -t cmake_aarch64_toolchain-build.XXXXXXXXXX);" +
+    cmd = "workdir=$$(mktemp -d cmake_aarch64_toolchain-build.XXXXXXXXXX);" +
           "cp -aL $$(dirname $(location @aibench//tools/cmake_toolchain:toolchain)) $$workdir/;" +
           "mv $$workdir/cmake_toolchain/" + TPL_TOOLCHAIN_CMAKE + " $$workdir/cmake_toolchain/" + AARCH64_TOOLCHAIN_CMAKE +";" +
           "GCC_PATH=$$(realpath $(rootpath @gcc_linaro_7_3_1_aarch64_linux_gnu//:gcc));" +
           "GNU_PATH=$$(dirname $$(dirname $$GCC_PATH));" +
           "sed -i \"s^GCC_PATH^$$GCC_PATH^g\" $$workdir/cmake_toolchain/" + AARCH64_TOOLCHAIN_CMAKE + ";" +
           "sed -i \"s^GNU_PATH^$$GNU_PATH^g\" $$workdir/cmake_toolchain/" + AARCH64_TOOLCHAIN_CMAKE + ";" +
-          "cp -a $$workdir/cmake_toolchain/* $(@D);" +
-          "rm -rf $$workdir",
+          "cp -a $$workdir/cmake_toolchain/* $(@D);",
 )
 
 genrule(
     name = "ncnn_gen_cmake_armhf_toolchain",
     srcs = ["@aibench//tools/cmake_toolchain:toolchain", "@gcc_linaro_7_3_1_arm_linux_gnueabihf//:gcc"],
     outs = [ARMHF_TOOLCHAIN_CMAKE],
-    cmd = "workdir=$$(mktemp -d -t cmake_armhf_toolchain-build.XXXXXXXXXX);" +
+    cmd = "workdir=$$(mktemp -d cmake_armhf_toolchain-build.XXXXXXXXXX);" +
           "cp -aL $$(dirname $(location @aibench//tools/cmake_toolchain:toolchain)) $$workdir/;" +
           "mv $$workdir/cmake_toolchain/" + TPL_TOOLCHAIN_CMAKE + " $$workdir/cmake_toolchain/" + ARMHF_TOOLCHAIN_CMAKE +";" +
           "GCC_PATH=$$(realpath $(rootpath @gcc_linaro_7_3_1_arm_linux_gnueabihf//:gcc));" +
           "GNU_PATH=$$(dirname $$(dirname $$GCC_PATH));" +
           "sed -i \"s^GCC_PATH^$$GCC_PATH^g\" $$workdir/cmake_toolchain/" + ARMHF_TOOLCHAIN_CMAKE + ";" +
           "sed -i \"s^GNU_PATH^$$GNU_PATH^g\" $$workdir/cmake_toolchain/" + ARMHF_TOOLCHAIN_CMAKE + ";" +
-          "cp -a $$workdir/cmake_toolchain/* $(@D);" +
-          "rm -rf $$workdir",
+          "cp -a $$workdir/cmake_toolchain/* $(@D);",
 )
 
 CMAKE_TOOLCHAIN_SRC = select({
@@ -102,22 +113,16 @@ genrule(
     name = "ncnn_gen",
     srcs = glob(["**/*"]) + CMAKE_TOOLCHAIN_SRC,
     outs = NCNN_HEADERS + NCNN_LIBRARIES + NCNN_MODELS,
-    cmd = "workdir=$$(mktemp -d -t ncnn-build.XXXXXXXXXX);" +
+    cmd = "workdir=$$(pwd);" +
+          "builddir=$$(mktemp -d ncnn-build.XXXXXXXXXX);" +
           COPY_CMAKE_COMMAND +
-          "cp -aL $$(dirname $(location CMakeLists.txt))/* $$workdir;" +
-          "pushd $$workdir;" +
-          "sed -i -e 's/fno-rtti/frtti/g' CMakeLists.txt;" +
-          "mkdir build;" +
-          "pushd build;" +
-          "cmake " + NCNN_CMAKE_OPTS + " ..;" +
-          "make -j4;" +
-          "make install;" +
-          "mkdir install/models;" +
-          "cp ../benchmark/*.param install/models;" +
-          "popd;" +
-          "popd;" +
-          "cp -a $$workdir/build/install/* $(@D);" +
-          "rm -rf $$workdir",
+          "sourcedir=$$(dirname $(location CMakeLists.txt));" +
+          "cmake " + NCNN_CMAKE_OPTS + " -DNCNN_DISABLE_RTTI=OFF -DCMAKE_INSTALL_PREFIX=$(RULEDIR) -S $$sourcedir -B $$builddir;" +
+          "VERBOSE=1 make -j4 -C $$builddir;" +
+          "make install -C $$builddir;" +
+          "mkdir $$workdir/models;" +
+          "cp $$sourcedir/benchmark/*.param $$workdir/models;" +
+          "cp -r $$workdir/models $(RULEDIR)",
 )
 
 cc_library(
@@ -127,3 +132,4 @@ cc_library(
     include_prefix = "ncnn",
     visibility = ["//visibility:public"],
 )
+

@@ -57,10 +57,10 @@ MobileAIBench supports several deep learning frameworks (called `executor` in th
 
 | Software  | Installation command  | Tested version  |
 | :-------: | :-------------------: | :-------------: |
-| Python  |   | 2.7  |
+| Python  |   | 3.10 |
 | ADB  | apt-get install android-tools-adb  | Required by Android run, >= 1.0.32  |
-| Android NDK  | [NDK installation guide](https://developer.android.com/ndk/guides/setup#install) | Required by Android build, r15c |
-| Bazel  | [bazel installation guide](https://docs.bazel.build/versions/master/install.html)  | 0.13.0  |
+| Android NDK  | [NDK installation guide](https://developer.android.com/ndk/guides/setup#install) | Required by Android build, r21e |
+| Bazel  | [bazel installation guide](https://docs.bazel.build/versions/master/install.html)  | 5.3.2  |
 | CMake  | apt-get install cmake  | >= 3.11.3  |
 | FileLock  | pip install -I filelock==3.0.0  | Required by Android run  |
 | PyYaml  | pip install -I pyyaml==3.12  | 3.12.0  |

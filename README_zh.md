@@ -23,10 +23,10 @@ MobileAIBench 现在支持多种框架 ([MACE](https://github.com/XiaoMi/mace), 
 
 | 依赖  | 安装命令  | 验证可用的版本  |
 | :-------: | :-------------------: | :-------------: |
-| Python  |   | 2.7  |
+| Python  |   | 3.10 |
 | ADB  | apt-get install android-tools-adb  | Required by Android run, >= 1.0.32  |
-| Android NDK  | [NDK installation guide](https://developer.android.com/ndk/guides/setup#install) | Required by Android build, r15c |
-| Bazel  | [bazel installation guide](https://docs.bazel.build/versions/master/install.html)  | 0.13.0  |
+| Android NDK  | [NDK installation guide](https://developer.android.com/ndk/guides/setup#install) | Required by Android build, r21e |
+| Bazel  | [bazel installation guide](https://docs.bazel.build/versions/master/install.html)  | 5.3.2  |
 | CMake  | apt-get install cmake  | >= 3.11.3  |
 | FileLock  | pip install -I filelock==3.0.0  | Required by Android run  |
 | PyYaml  | pip install -I pyyaml==3.12  | 3.12.0  |

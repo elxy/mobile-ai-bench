@@ -19,24 +19,28 @@
 #include <string>
 
 #include "aibench/executors/base_executor.h"
-#include "ncnn/include/layer.h"
-#include "ncnn/include/mat.h"
-#include "ncnn/include/modelbin.h"
-#include "ncnn/include/net.h"
+#include "ncnn/include/ncnn/datareader.h"
+#include "ncnn/include/ncnn/layer.h"
+#include "ncnn/include/ncnn/mat.h"
+#include "ncnn/include/ncnn/modelbin.h"
+#include "ncnn/include/ncnn/net.h"
 
 namespace ncnn {
-
-// always return empty weights
-class ModelBinFromEmpty : public ModelBin {
- public:
-  virtual Mat load(int w, int /*type*/) const { return Mat(w); }
+class DataReaderFromEmpty : public DataReader
+{
+public:
+    virtual int scan(const char* format, void* p) const
+    {
+        (void)format;
+        (void)p;
+        return 0;
+    }
+    virtual size_t read(void* buf, size_t size) const
+    {
+        memset(buf, 0, size);
+        return size;
+    }
 };
-
-class BenchNet : public Net {
- public:
-  int load_model();
-};
-
 }  // namespace ncnn
 
 namespace aibench {
@@ -55,7 +59,7 @@ class NcnnExecutor : public BaseExecutor {
 
   virtual void Finish();
  private:
-  ncnn::BenchNet net;
+  ncnn::Net net;
 };
 
 }  // namespace aibench
