@@ -462,6 +462,7 @@ def bench_run(abi,
             device_bin_full_path = "%s/%s" % (device_bin_path, bin_name)
             device.exec_command("rm -rf %s" % device_bin_full_path)
             device.push(host_bin_full_path, device_bin_path)
+            device.exec_command("chmod +x %s" % device_bin_full_path)
             print("Run %s" % device_bin_full_path)
 
             cpu_mask, big_core_num = get_cpu_mask(device)

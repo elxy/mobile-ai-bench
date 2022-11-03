@@ -31,6 +31,7 @@ def split_stdout(stdout_str):
 
 
 def adb_push_file(src_file, dst_dir, serialno, silent=False):
+    src_file = os.path.realpath(src_file)
     if not os.path.isfile(src_file):
         print("Not file, skip pushing " + src_file)
         return
